@@ -1,5 +1,30 @@
 <%- include('partials/header.ejs'); -%>
-<div>
-    <h3>dddd</h3>
+<% if (locals.result){ %>
+    <div>
+        <img src="https://covers.openlibrary.org/b/isbn/<%= result %>.jpg" />
+    </div>
+
+
+
+<% } else { %>
+<div class="book-note-addition">
+    <form action="/submit" method="post">
+        <div class="note-section">
+            <label for="note">Type notes</label>
+            <input type="text" name="note">
+        </div>
+        <div class="book-number-section">
+            <label for="">Type book's ISBN</label>
+            <input type="text" name="ISBN_input">
+        </div>
+        <div class="book-rating-section">
+            <label for="">Rate book</label>
+            <input type="text" name="rate-number">
+        </div>
+        <div class="submit-button">
+            <button type="submit">Submit</button>
+        </div>
+    </form>
 </div>
+<% } %>
 <%- include('partials/footer.ejs'); -%>
