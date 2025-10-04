@@ -18,19 +18,31 @@ db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
+
+let libraryNotes =[];
+
 //connect Open Library Covers API to webiste
 //connect with database and send user input to databank for permenent storage
-app.get("/", (req, res) => {
-  res.render("index.ejs");
+app.get("/", async (req, res) => {
+  const result = await db.query("SELECT * FROM book_information ORDER BY id ASC");
+  libraryNotes = result.rows;
+  
+  res.render("index.ejs", {
+
+  });
 });
 
 app.post('/submit', async (req, res) =>{
-  const ISBN_number_input = req.body["ISBN_input"];
-  const ISBN_number_input_Conversion = Number(ISBN_number_input);
-  console.log(ISBN_number_input_Conversion);
+  const bookNotes = req.body.note;
+  const bookRating = req.body.rate_number;
+  /**add limitation to rating number up to 10 or 5 */
+  // if(bookRating >= 10){
+  //   console.log("rating must be less than or eqaul to 10");
+  // }
+  
   try{
-    res.render("index.ejs", {result : ISBN_number_input_Conversion});
-    // res.redirect("/");
+    await db.query("INSERT INTO book_information (book_notes, book_rating) VALUES ($1, $2)", [bookNotes, bookRating]);
+    res.redirect("/");
   }catch(err){
     console.log(err);
   }
