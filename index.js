@@ -26,22 +26,23 @@ let libraryNotes =[];
 app.get("/", async (req, res) => {
   const result = await db.query("SELECT * FROM book_information ORDER BY id ASC");
   libraryNotes = result.rows;
-  
+  //dislpay data to the site
   res.render("index.ejs", {
-
+    noteList : libraryNotes,
   });
 });
 
 app.post('/submit', async (req, res) =>{
   const bookNotes = req.body.note;
   const bookRating = req.body.rate_number;
+  const ISBN = req.body.ISBN_input;
   /**add limitation to rating number up to 10 or 5 */
   // if(bookRating >= 10){
   //   console.log("rating must be less than or eqaul to 10");
   // }
   
   try{
-    await db.query("INSERT INTO book_information (book_notes, book_rating) VALUES ($1, $2)", [bookNotes, bookRating]);
+    await db.query("INSERT INTO book_information (book_notes, book_rating, ISBN) VALUES ($1, $2, $3)", [bookNotes, bookRating, ISBN]);
     res.redirect("/");
   }catch(err){
     console.log(err);

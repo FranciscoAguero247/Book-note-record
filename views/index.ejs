@@ -1,13 +1,7 @@
 <%- include('partials/header.ejs'); -%>
-<% if (locals.result){ %>
-    <div>
-        <img src="https://covers.openlibrary.org/b/isbn/<%= result %>.jpg" />
-    </div>
 
 
-
-<% } else { %>
-<div class="book-note-addition">
+    <div class="book-note-addition">
     <form action="/submit" method="post">
         <div class="note-section">
             <label for="note">Type notes</label>
@@ -26,5 +20,12 @@
         </div>
     </form>
 </div>
-<% } %>
+
+<%for (let bookNoteList of noteList){%>
+    <p><%= bookNoteList.book_notes %></p>
+    <p><%= bookNoteList.book_rating %></p>
+
+    <img src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>.jpg" />
+
+<% }; %>
 <%- include('partials/footer.ejs'); -%>
