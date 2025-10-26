@@ -1,0 +1,36 @@
+.note-block{
+    margin-left: auto;
+    margin-right: auto;
+}
+.book-image{
+    float: left;
+    margin-right: 1rem;
+    max-height:15%;
+}
+
+.container {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.book-note-addition {
+  order: 3;
+}
+.note-block{
+  order: 2;
+}
+.rating-block{
+  order: 1;
+  float: right;
+  margin-left: auto;
+}
+
+/* .rate-number{
+  float: right;
+} */
+footer{
+    position: absolute;
+    bottom: 0;
+    height: 50px;
+}

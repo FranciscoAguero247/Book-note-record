@@ -22,10 +22,14 @@
 </div>
 
 <%for (let bookNoteList of noteList){%>
-    <p><%= bookNoteList.book_notes %></p>
-    <p><%= bookNoteList.book_rating %></p>
-
-    <img src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>.jpg" />
-
+    <div class="note-block">
+        <div class="img-block">
+            <img class="book-image" src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>-M.jpg" />
+            <p class="note-text"><%= bookNoteList.book_notes %></p>
+        </div>
+    </div>
+    <div class="rating-block">
+         <h3 class="rate-number"> My rating is: <%= bookNoteList.book_rating %>/10</h3> 
+    </div>
 <% }; %>
 <%- include('partials/footer.ejs'); -%>
