@@ -32,7 +32,7 @@ app.get("/", async (req, res) => {
   });
 });
 
-app.post('/submit', async (req, res) =>{
+app.post('/add', async (req, res) =>{
   const bookNotes = req.body.note;
   const bookRating = req.body.selectedOption;
   const ISBN = req.body.ISBN_input;
@@ -44,6 +44,17 @@ app.post('/submit', async (req, res) =>{
     console.log(err);
   }
 
+});
+
+app.post("/delete", async (req, res) => {
+  
+  const deletedItem = req.body.deleteItemId;
+  try{
+    await db.query("DELETE FROM book_information WHERE id = $1", [deletedItem]);
+    res.redirect("/");
+  }catch(err){
+    console.log(err);
+  }
 });
 
 app.listen(port, () => {
