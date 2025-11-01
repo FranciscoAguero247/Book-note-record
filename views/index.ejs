@@ -1,7 +1,8 @@
 <%- include('partials/header.ejs'); -%>
 
-
-    <div class="book-note-addition">
+<!--add a hide/show button for the div class, book-note-addition-->
+<!--add a delete button to remove the note div-->
+<div id="myDiv" class="book-note-addition" style="display: none;">
     <form action="/submit" method="post">
         <div class="note-section">
             <label for="note">Type notes</label>
@@ -12,8 +13,6 @@
             <input type="text" name="ISBN_input">
         </div>
         <div class="book-rating-section">
-            <!-- <label for="">Rate book</label>
-            <input type="text" name="rate_number"> -->
             <select name="selectedOption">
                 <option>Select a rate number</option>
                 <option value="1">1
@@ -39,10 +38,22 @@
         <div class="img-block">
             <img class="book-image" src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>-M.jpg" />
             <p class="note-text"><%= bookNoteList.book_notes %></p>
+            <button id="toggleButton"> Click to add new notes</button>
         </div>
     </div>
     <div class="rating-block">
          <h3 class="rate-number"> My rating is: <%= bookNoteList.book_rating %>/10</h3> 
     </div>
+    
+<script>
+    document.getElementById("toggleButton").onclick = function() {
+        let myDiv = document.getElementById("myDiv");
+        if (myDiv.style.display === "none") {
+            myDiv.style.display = "block";
+        } else {
+            myDiv.style.display = "none";
+        }
+    };
+</script>
 <% }; %>
 <%- include('partials/footer.ejs'); -%>
