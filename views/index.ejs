@@ -8,12 +8,24 @@
     <div class="img-block">
         <h3 class="rate-number"> My rating is: <%= bookNoteList.book_rating %>/10</h3> 
         <img class="book-image" src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>-M.jpg" />
-        <p class="note-text"><%= bookNoteList.book_notes %></p>
+        <p class="note-text<%=bookNoteList.id%>"><%= bookNoteList.book_notes %></p>
     </div>
     <form action="/delete" method="post">
         <p>checkbox to delete</p>
         <input type="checkbox" onchange="this.form.submit()" name="deleteItemId" value="<%= bookNoteList.id %>">
     </form>
+    <!--have updated text placed in database and diplayed on site-->
+    <form class="edit" action="/edit" method="post">
+        <input type="hidden" name="updatedItemId" value="<%= bookNoteList.id %>">
+
+        <input id="input<%=bookNoteList.id%>" type="text" name="updatedNotes" value="<%= bookNoteList.book_notes %>" autocomplete="off" autofocus="true" hidden="true" />
+        
+        <button id="done<%=bookNoteList.id%>" class="edit" type="submit" hidden><img class="icon" src="" alt="tick image"></button>
+
+    </form>
+    <button id="edit<%=bookNoteList.id%>" class="edit" onclick="handler('<%=bookNoteList.id%>')"><img class="icon"
+        src="" alt="pencil image"></button>
+
     <% }; %>
     <div id="myDiv" class="book-note-addition" style="display: none;">
     <form action="/add" method="post">
@@ -55,5 +67,10 @@
             myDiv.style.display = "block";
         }
     };
+     function handler(id) {
+      document.getElementById("edit" + id).setAttribute("hidden", true)
+      document.getElementById("done" + id).removeAttribute("hidden")
+      document.getElementById("input" + id).removeAttribute("hidden")
+    }
 </script>
 <%- include('partials/footer.ejs'); -%>

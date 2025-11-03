@@ -23,6 +23,19 @@ let libraryNotes =[];
 
 //connect Open Library Covers API to webiste
 //connect with database and send user input to databank for permenent storage
+/**
+ * add tme of date to note div and database
+ * // current timestamp in milliseconds
+let ts = Date.now();
+
+let date_time = new Date(ts);
+let date = date_time.getDate();
+let month = date_time.getMonth() + 1;
+let year = date_time.getFullYear();
+
+// prints date & time in YYYY-MM-DD format
+console.log(year + "-" + month + "-" + date);
+ */
 app.get("/", async (req, res) => {
   const result = await db.query("SELECT * FROM book_information ORDER BY id ASC");
   libraryNotes = result.rows;
@@ -44,6 +57,18 @@ app.post('/add', async (req, res) =>{
     console.log(err);
   }
 
+});
+
+app.post("/edit", async (req, res) => {
+  
+  const updatedBookNoteID = req.body.updatedItemId;
+  const updatedNotes = req.body.updatedNotes;
+  try{
+    await db.query("UPDATE book_information SET book_notes = ($1) WHERE id=$2", [updatedNotes, updatedBookNoteID]);
+    res.redirect("/");
+  }catch(err){
+    console.log(err);
+  }
 });
 
 app.post("/delete", async (req, res) => {
