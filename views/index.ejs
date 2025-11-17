@@ -2,12 +2,29 @@
 
 <!--add a hide/show button for the div class, book-note-addition-->
 <!--add a delete button to remove the note div-->
+
 <button id="toggleButton"> Click to add notes</button>
+<!--add a drop down menuthat sorts by number rating, date of recency and book title -->
+<div class="drop-down-sort-menu">
+<form action="/sort" method="post">
+    <label for="selection">Sort by:</label>
+        <select name="drop_sort_down_menu">
+            <option value="highest-rating">Highest Rating</option>
+            <option value="lowest-rating">Lowest Rating</option>
+            <option value="recent">Most recent</option>
+            <option value="oldest">Oldest</option>
+            <option value="title-sort">Title(A-Z)</option>
+        </select>
+        <button type="submit">Submit</button>
+</form>
+</div>
+
 <div class="note-block">
     <%for (let bookNoteList of noteList){%>
     <div class="img-block">
         <h3 class="rate-number"> My rating is: <%= bookNoteList.book_rating %>/10</h3> 
         <p><%= bookNoteList.date_created %></p>
+        <p> <%= bookNoteList.book_title%> </p>
         <img class="book-image" src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>-M.jpg" />
         <p class="note-text<%=bookNoteList.id%>"><%= bookNoteList.book_notes %></p>
     </div>
