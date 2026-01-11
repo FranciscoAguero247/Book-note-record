@@ -3,53 +3,84 @@ import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
 import axios from "axios";
+import "dotenv/config";
 
 const app = express();
-const port = 3000;
+const port = process.env.port || 3000;
 
-const db = new pg.Client({
-  user: "postgres",
-  host: "localhost",
-  database: "book notes",
-  password: "postgres",
-  port: 5432,
+const db = new pg.Pool({
+  user: process.env.DB_USER,
+  host: process.env.DB_HOST,
+  database: process.env.DD_NAME,
+  password: process.env.DB_PASSWORD,
+  port: process.env.DB_PORT,
 });
+
+
 db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-let libraryNotes =[];
 
-//connect Open Library Covers API to webiste
-//connect with database and send user input to databank for permenent storage
-//add tme of date to note div and database
-//conncet app.post to drop down menu in client side
 app.get("/", async (req, res) => {
-  const result = await db.query("SELECT * FROM book_information ORDER BY id ASC");
-  libraryNotes = result.rows;
-  //dislpay data to the site
-  res.render("index.ejs", {
-    noteList : libraryNotes,
-  });
+  const limit = 6;
+  const page = parseInt(req.query.page) || 1;
+  const offset = (page - 1) * limit;
+
+  try {
+    const totalResult = await db.query("SELECT COUNT(*) FROM book_information");
+    const totalBooks = parseInt(totalResult.rows[0].count);
+    const totalPages = Math.ceil(totalBooks / limit);
+    const avgRes = await db.query("SELECT ROUND(AVG(book_rating), 1) as avg FROM book_information");
+    const lastUpdateRes = await db.query("SELECT MAX(date_created) as last_date FROM book_information");
+    const lastUpdate = lastUpdateRes.rows[0].last_date;
+
+    const result = await db.query(
+      "SELECT * FROM book_information ORDER BY id DESC LIMIT $1 OFFSET $2",
+      [limit, offset]
+    );
+
+   res.render("index.ejs", {
+      noteList: result.rows,
+      currentPage: page,
+      totalPages: totalPages,
+      averageRating: avgRes.rows[0].avg || 0,
+      lastUpdated: lastUpdate // Pass this to the frontend
+    });
+  } catch (err) {
+    console.error(err);
+    res.render("index.ejs", { noteList: [], currentPage: 1, totalPages: 1 });
+  }
 });
 
-app.post('/add', async (req, res) =>{
-  const bookNotes = req.body.note;
-  const bookRating = req.body.selectedOption;
-  const ISBN = req.body.ISBN_input;
-
-  //add book title to the book_informatiion table under book_title colum
-  //get title from json file at openlibrary.org and send it to database
-
-  const bookInfo = await axios.get(`https://openlibrary.org/isbn/${ISBN}.json`);
-  const bookTitle = bookInfo.data.title;
+app.post('/add', async (req, res) => {
+  const { book_note, selectedOption, ISBN_input } = req.body;
   
-  try{
-    await db.query("INSERT INTO book_information (book_notes, book_rating, book_title, isbn, date_created) VALUES ($1, $2, $3, $4, NOW())", [bookNotes, bookRating, bookTitle, ISBN]);
+  try {
+    // 1. Fetch ISBN data
+    const isbnRes = await axios.get(`https://openlibrary.org/isbn/${ISBN_input}.json`);
+    const data = isbnRes.data;
+    
+    const bookTitle = data.title || "Unknown Title";
+    
+    // 2. Fetch Author Name (Authors are stored as an array of keys)
+    let authorName = "Unknown Author";
+    if (data.authors && data.authors.length > 0) {
+      const authorKey = data.authors[0].key; // e.g., /authors/OL26320A
+      const authorRes = await axios.get(`https://openlibrary.org/authors/${authorKey.split('/').pop()}.json`);
+      authorName = authorRes.data.name;
+    }
+
+    await db.query(
+      "INSERT INTO book_information (book_notes, book_rating, book_title, isbn, author) VALUES ($1, $2, $3, $4, $5)",
+      [book_note, selectedOption, bookTitle, ISBN_input, authorName]
+    );
+    
     res.redirect("/");
-  }catch(err){
-    console.log(err);
+  } catch (err) {
+    console.error("API Error:", err.message);
+    res.status(500).send("Error retrieving book data.");
   }
 });
 
@@ -65,6 +96,26 @@ app.post("/edit", async (req, res) => {
   }
 });
 
+app.get("/search", async (req, res) => {
+  const searchTerm = req.query.q;
+
+  try {
+    // The % symbols allow for partial matching
+    const result = await db.query(
+      "SELECT * FROM book_information WHERE book_title ILIKE $1 OR author ILIKE $1 ORDER BY id DESC",
+      [`%${searchTerm}%`]
+    );
+
+    res.render("index.ejs", { 
+        noteList: result.rows,
+        searchQuery: searchTerm // Pass this back so the user knows what they searched for
+    });
+  } catch (err) {
+    console.error(err);
+    res.redirect("/");
+  }
+});
+
 app.post("/delete", async (req, res) => {
   
   const deletedItem = req.body.deleteItemId;
@@ -77,70 +128,29 @@ app.post("/delete", async (req, res) => {
 });
 
 app.post("/sort", async (req, res) => {
-
-  const dropDownMenu = req.body.drop_sort_down_menu;
-
-  if(dropDownMenu === "lowest-rating"){
-    try{
-      const result = await db.query("SELECT * FROM book_information ORDER BY book_rating ASC");
-      libraryNotes = result.rows;
-      res.render("index.ejs", {
-        noteList : libraryNotes,
-      });
-    }catch(err){
-      console.log(err);
-    }
-  }
-
-  if(dropDownMenu === "highest-rating"){
-    try{
-      const result = await db.query("SELECT * FROM book_information ORDER BY book_rating DESC");
-      libraryNotes = result.rows;
-      res.render("index.ejs", {
-        noteList : libraryNotes,
-      });
-    }catch(err){
-      console.log(err);
-    }
-  }
-
-  if(dropDownMenu === "recent"){ 
-    try{
-      const result = await db.query("SELECT id,book_notes, book_rating, isbn, date_created FROM book_information WHERE date_created = (SELECT MAX(date_created) FROM book_information);");
-      libraryNotes = result.rows;
-      res.render("index.ejs", {
-        noteList : libraryNotes,
-      });
-    }catch(err){
-      console.log(err);
-    }
-  }
-
-  if(dropDownMenu === "oldest"){
-    try{
-      const result = await db.query("SELECT id,book_notes, book_rating, isbn, date_created FROM book_information WHERE date_created = (SELECT MIN(date_created) FROM book_information);");
-      libraryNotes = result.rows;
-      res.render("index.ejs", {
-        noteList : libraryNotes,
-      });
-    }catch(err){
-      console.log(err);
-    }
-  }
+  const choice = req.body.drop_sort_down_menu;
+  const page = 1; // Reset to page 1 when sorting
+  const limit = 6;
   
-  // add title colomn to book_information table for ASC to work 
-  // have title display on client side
+  let query = "SELECT * FROM book_information";
+  if (choice === "highest-rating") query += " ORDER BY book_rating DESC";
+  else if (choice === "lowest-rating") query += " ORDER BY book_rating ASC";
+  else query += " ORDER BY id DESC";
 
-  if(dropDownMenu === "title-sort"){
-    try{
-      await db.query("SELECT * FROM book_information ORDER BY book_title ASC");
-      res.redirect("/");
-    }catch(err){
-      console.log(err);
-    }
+  try {
+    const totalResult = await db.query("SELECT COUNT(*) FROM book_information");
+    const totalPages = Math.ceil(parseInt(totalResult.rows[0].count) / limit);
+    
+    const result = await db.query(query + " LIMIT $1", [limit]);
+
+    res.render("index.ejs", { 
+      noteList: result.rows,
+      currentPage: page,
+      totalPages: totalPages
+    });
+  } catch (err) {
+    res.redirect("/");
   }
-
-
 });
 
 app.listen(port, () => {

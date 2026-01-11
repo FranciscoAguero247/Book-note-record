@@ -1,94 +1,210 @@
 <%- include('partials/header.ejs'); -%>
+<section class="notebook">
+    <nav>
+        <div class="nav__container">
+            <h4 class="note__title">Book Note Collection</h4>
 
-<!--add a hide/show button for the div class, book-note-addition-->
-<!--add a delete button to remove the note div-->
 
-<button id="toggleButton"> Click to add notes</button>
-<!--add a drop down menuthat sorts by number rating, date of recency and book title -->
-<div class="drop-down-sort-menu">
-<form action="/sort" method="post">
-    <label for="selection">Sort by:</label>
-        <select name="drop_sort_down_menu">
-            <option value="highest-rating">Highest Rating</option>
-            <option value="lowest-rating">Lowest Rating</option>
-            <option value="recent">Most recent</option>
-            <option value="oldest">Oldest</option>
-            <option value="title-sort">Title(A-Z)</option>
-        </select>
-        <button type="submit">Submit</button>
-</form>
-</div>
+            <div class="drop__down__sort__menu">
+                <form action="/sort" method="post">
+                    <label for="selection">Sort by:</label>
+                        <select name="drop_sort_down_menu">
+                            <option value="highest-rating">Highest Rating</option>
+                            <option value="lowest-rating">Lowest Rating</option>
+                            <option value="recent">Most recent</option>
+                            <option value="oldest">Oldest</option>
+                            <option value="title-sort">Title(A-Z)</option>
+                        </select>
+                        <button type="submit">Submit</button>
+                </form>
+            </div>
+
+            <div class="search-container">
+                <form action="/search" method="get">
+                    <input type="text" name="q" placeholder="Search by title or author..." required>
+                    <button type="submit" class="search-btn">
+                        <i class="fa fa-search search-icon" aria-hidden="true"></i>
+                    </button>
+                    <a href="/" class="clear-btn">Clear</a>
+                </form>
+            </div>
+            
+            <div class="drop-down-sort-menu">
+                <button class="click note__addition__btn" id="toggleButton"> Click to add notes</button>
+                <div class="menu" id="menuForm">                 
+                 <form action="/add" method="post">
+                    <div class="note-section">
+                        <label for="note">Type in notes</label>
+                        <textarea id="note_block" name="book_note" required></textarea>
+                    </div>
+                    <div class="book-number-section">
+                        <label for="">Type book's ISBN</label>
+                        <input type="text" name="ISBN_input" required>
+                    </div>
+                    <div class="book-rating-section">
+                        <select name="selectedOption">
+                            <option>Select a rate number</option>
+                            <option value="1">1
+                            <option value="2">2
+                            <option value="3">3
+                            <option value="4">4
+                            <option value="5">5
+                            <option value="6">6
+                            <option value="7">7
+                            <option value="8">8
+                            <option value="9">9
+                            <option value="10">10
+                        </select>
+                    </div>
+                    <div class="submit-button">
+                        <button type="submit" class="click">Submit</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+        <div class="note__lines"></div>
+        
+    </nav>
 
 <div class="note-block">
-    <%for (let bookNoteList of noteList){%>
-    <div class="img-block">
-        <h3 class="rate-number"> My rating is: <%= bookNoteList.book_rating %>/10</h3> 
-        <p><%= bookNoteList.date_created %></p>
-        <p> <%= bookNoteList.book_title%> </p>
-        <img class="book-image" src="https://covers.openlibrary.org/b/isbn/<%= bookNoteList.isbn %>-M.jpg" />
-        <p class="note-text<%=bookNoteList.id%>"><%= bookNoteList.book_notes %></p>
+    <% if (locals.averageRating) { %>
+    <div class="library-stats">
+        <% if (locals.lastUpdated) { %>
+    <p class="last-update-text">
+        Library last updated on: 
+        <strong><%= new Date(lastUpdated).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) %></strong>
+    </p>
+    <% } %>
+        <div class="stat-card">
+        <span class="stat-label">Average Library Score:</span>
+        <span class="stat-value"><%= averageRating %> / 10</span>
+        </div>
     </div>
-    <form action="/delete" method="post">
-        <p>checkbox to delete</p>
-        <input type="checkbox" onchange="this.form.submit()" name="deleteItemId" value="<%= bookNoteList.id %>">
-    </form>
-    <!--have updated text placed in database and diplayed on site-->
-    <form class="edit" action="/edit" method="post">
-        <input type="hidden" name="updatedItemId" value="<%= bookNoteList.id %>">
+    <% } %>
+    
+    <% if (locals.currentPage && locals.totalPages) { %>
+   <div class="pagination">
+    <% if (locals.currentPage && locals.currentPage > 1) { %>
+        <a href="/?page=<%= currentPage - 1 %>" class="page-btn">« Previous</a>
+    <% } %>
 
-        <input id="input<%=bookNoteList.id%>" type="text" name="updatedNotes" value="<%= bookNoteList.book_notes %>" autocomplete="off" autofocus="true" hidden="true" />
-        
-        <button id="done<%=bookNoteList.id%>" class="edit" type="submit" hidden><img class="icon" src="" alt="tick image"></button>
+    <% if (locals.currentPage && locals.totalPages) { %>
+        <span class="page-info">Page <%= currentPage %> of <%= totalPages %></span>
+    <% } %>
 
-    </form>
-    <button id="edit<%=bookNoteList.id%>" class="edit" onclick="handler('<%=bookNoteList.id%>')"><img class="icon"
-        src="" alt="pencil image"></button>
+    <% if (locals.currentPage && locals.totalPages && currentPage < totalPages) { %>
+        <a href="/?page=<%= currentPage + 1 %>" class="page-btn">Next »</a>
+    <% } %>
+    </div>
 
-    <% }; %>
-    <div id="myDiv" class="book-note-addition" style="display: none;">
-    <form action="/add" method="post">
-        <div class="note-section">
-            <label for="note">Type notes</label>
-            <input type="text" name="note">
+    <% } %>
+    <% if (locals.error) { %>
+        <div class="error-banner"><%= error %></div>
+    <% } %>
+
+    <% if (locals.searchQuery) { %>
+        <div class="search-results-info">
+            <p>Showing <%= noteList.length %> results for "<strong><%= searchQuery %></strong>"</p>
         </div>
-        <div class="book-number-section">
-            <label for="">Type book's ISBN</label>
-            <input type="text" name="ISBN_input">
+    <% } %>
+
+    <% if (noteList.length === 0) { %>
+        <div class="empty-state">
+            <img src="https://cdn-icons-png.flaticon.com/512/3429/3429149.png" alt="Library" width="120">
+            <h3>Your library is empty</h3>
+            <p>Start by searching for a book ISBN below to add your first note!</p>
         </div>
-        <div class="book-rating-section">
-            <select name="selectedOption">
-                <option>Select a rate number</option>
-                <option value="1">1
-                <option value="2">2
-                <option value="3">3
-                <option value="4">4
-                <option value="5">5
-                <option value="6">6
-                <option value="7">7
-                <option value="8">8
-                <option value="9">9
-                <option value="10">10
-            </select>
-        </div>
-        <div class="submit-button">
-            <button type="submit">Submit</button>
-        </div>
-    </form>
+    <% } else { %>
+        <% for (let book of noteList) { %>
+            <div class="note-row">
+                <div class="img-block">
+                    
+                    <h1 class="title-book"> <%= book.book_title %> </h1>
+                    <h4 class="author-name">by <%= book.author %></h4> <div class="rating-badge"></div>
+                    <h3 class="rate-number"> My rating is: <%= book.book_rating %>/10</h3> 
+                    <p class="time-stamp"><%= book.date_created %></p>
+                   
+                   <img class="book-image" src="https://covers.openlibrary.org/b/isbn/<%= book.isbn %>-M.jpg" alt="Book Cover" />
+                    <p class="book--note--txt" id="text<%=book.id%>"><%= book.book_notes %></p>
+                    
+                    <form class="edit-form" action="/edit" method="post">
+                        <input type="hidden" name="updatedItemId" value="<%= book.id %>">
+                        <textarea id="input<%=book.id%>" name="updatedNotes" hidden><%= book.book_notes %></textarea>
+                        <button id="done<%=book.id%>" type="submit" class="save-btn" hidden>Save</button>
+                    </form>
+                </div>
+
+                <div class="delete__section">
+                    <form action="/delete" method="post">
+                        <input type="hidden" name="deleteItemId" value="<%= book.id %>">
+                        <label class="checkbox-container">
+                            <input type="checkbox" onchange="document.getElementById('btn-<%= book.id %>').disabled = !this.checked">
+                            <span>Confirm delete</span>
+                        </label>
+                        <button type="submit" id="btn-<%= book.id %>" class="note--delete-btn" disabled>DELETE</button>
+                    </form>
+                </div>
+
+                <button id="edit<%=book.id%>" class="edit-trigger" onclick="handler('<%=book.id%>')">Edit Note</button>
+            </div>
+        <% } %>
+    <% } %>
 </div>
-</div>
+
+</section>
+
 <script>
-    document.getElementById("toggleButton").onclick = function() {
-        let myDiv = document.getElementById("myDiv");
-        if (myDiv.style.display === "block") {
-            myDiv.style.display = "none";
-        } else {
-            myDiv.style.display = "block";
-        }
-    };
+
+    const textarea = document.querySelector('textarea');
+        textarea.addEventListener('input', autoResize, false);
+
+        function autoResize() {
+        this.style.height = 'auto';
+        this.style.height = this.scrollHeight + 'px';
+    }
+
      function handler(id) {
       document.getElementById("edit" + id).setAttribute("hidden", true)
       document.getElementById("done" + id).removeAttribute("hidden")
       document.getElementById("input" + id).removeAttribute("hidden")
     }
+
+    const btn = document.getElementById('toggleButton');
+    const form = document.getElementById('menuForm');
+
+    btn.addEventListener('click', function() {
+        form.classList.toggle('is-visible');
+    });
+
+    function toggleDeleteButton(id) {
+    const checkbox = document.getElementById(`confirm-${id}`);
+    const button = document.getElementById(`btn-${id}`);
+    
+    // Enable button only if checkbox is checked
+    button.disabled = !checkbox.checked;
+    
+    // Optional: Add a CSS class for styling the "unlocked" state
+    if (checkbox.checked) {
+        button.classList.add('active');
+    } else {
+        button.classList.remove('active');
+    }
+}
+
+function handler(id) {
+  document.getElementById("text" + id).setAttribute("hidden", "true");
+  document.getElementById("edit" + id).setAttribute("hidden", "true");
+
+  document.getElementById("input" + id).removeAttribute("hidden");
+  document.getElementById("done" + id).removeAttribute("hidden");
+}
+
+function toggleDeleteButton(id) {
+    const checkbox = document.getElementById('confirm-' + id);
+    const btn = document.getElementById('btn-' + id);
+    btn.disabled = !checkbox.checked;
+}
+
 </script>
 <%- include('partials/footer.ejs'); -%>
