@@ -15,7 +15,7 @@
                             <option value="oldest">Oldest</option>
                             <option value="title-sort">Title(A-Z)</option>
                         </select>
-                        <button type="submit">Submit</button>
+                        <button type="submit" class="click">Submit</button>
                 </form>
             </div>
 
@@ -38,22 +38,22 @@
                         <textarea id="note_block" name="book_note" required></textarea>
                     </div>
                     <div class="book-number-section">
-                        <label for="">Type book's ISBN</label>
+                        <label for="isbn">Type book's ISBN</label>
                         <input type="text" name="ISBN_input" required>
                     </div>
                     <div class="book-rating-section">
-                        <select name="selectedOption">
-                            <option>Select a rate number</option>
-                            <option value="1">1
-                            <option value="2">2
-                            <option value="3">3
-                            <option value="4">4
-                            <option value="5">5
-                            <option value="6">6
-                            <option value="7">7
-                            <option value="8">8
-                            <option value="9">9
-                            <option value="10">10
+                        <select required name="selectedOption">
+                            <option value="" disabled selected>Select a rate number</option>
+                            <option value="1">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>
+                            <option value="6">6</option>
+                            <option value="7">7</option>
+                            <option value="8">8</option>
+                            <option value="9">9</option>
+                            <option value="10">10</option>
                         </select>
                     </div>
                     <div class="submit-button">
@@ -131,7 +131,7 @@
                     <form class="edit-form" action="/edit" method="post">
                         <input type="hidden" name="updatedItemId" value="<%= book.id %>">
                         <textarea id="input<%=book.id%>" name="updatedNotes" hidden><%= book.book_notes %></textarea>
-                        <button id="done<%=book.id%>" type="submit" class="save-btn" hidden>Save</button>
+                        <button id="done<%=book.id%>" type="submit" class="save-btn click" hidden>Save</button>
                     </form>
                 </div>
 
@@ -139,72 +139,74 @@
                     <form action="/delete" method="post">
                         <input type="hidden" name="deleteItemId" value="<%= book.id %>">
                         <label class="checkbox-container">
-                            <input type="checkbox" onchange="document.getElementById('btn-<%= book.id %>').disabled = !this.checked">
+                            <h3>tick to revel delete button</h3>
+                            <input type="checkbox" id="confirm-<%= book.id %>" onchange="toggleDeleteButton('<%= book.id %>')">
                             <span>Confirm delete</span>
                         </label>
                         <button type="submit" id="btn-<%= book.id %>" class="note--delete-btn" disabled>DELETE</button>
                     </form>
                 </div>
 
-                <button id="edit<%=book.id%>" class="edit-trigger" onclick="handler('<%=book.id%>')">Edit Note</button>
+                <button id="edit<%=book.id%>" class="edit-trigger click" onclick="handler('<%=book.id%>')">Edit Note</button>
             </div>
         <% } %>
     <% } %>
 </div>
 
 </section>
-
 <script>
-
-    const textarea = document.querySelector('textarea');
-        textarea.addEventListener('input', autoResize, false);
-
-        function autoResize() {
+    function autoResize() {
         this.style.height = 'auto';
         this.style.height = this.scrollHeight + 'px';
     }
 
-     function handler(id) {
-      document.getElementById("edit" + id).setAttribute("hidden", true)
-      document.getElementById("done" + id).removeAttribute("hidden")
-      document.getElementById("input" + id).removeAttribute("hidden")
+    document.addEventListener('input', function (event) {
+        if (event.target.tagName.toLowerCase() === 'textarea') {
+            autoResize.call(event.target);
+        }
+    }, false);
+
+    function handler(id) {
+        const elementsToHide = ["text" + id, "edit" + id];
+        const elementsToShow = ["input" + id, "done" + id];
+
+        elementsToHide.forEach(elId => {
+            const el = document.getElementById(elId);
+            if (el) el.setAttribute("hidden", "true");
+        });
+
+        elementsToShow.forEach(elId => {
+            const el = document.getElementById(elId);
+            if (el) {
+                el.removeAttribute("hidden");
+                if (elId === "input" + id) {
+                    el.focus();
+                    autoResize.call(el);
+                }
+            }
+        });
     }
 
-    const btn = document.getElementById('toggleButton');
-    const form = document.getElementById('menuForm');
-
-    btn.addEventListener('click', function() {
-        form.classList.toggle('is-visible');
-    });
+    const toggleBtn = document.getElementById('toggleButton');
+    const menuForm = document.getElementById('menuForm');
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', function() {
+            menuForm.classList.toggle('is-visible');
+        });
+    }
 
     function toggleDeleteButton(id) {
-    const checkbox = document.getElementById(`confirm-${id}`);
-    const button = document.getElementById(`btn-${id}`);
-    
-    // Enable button only if checkbox is checked
-    button.disabled = !checkbox.checked;
-    
-    // Optional: Add a CSS class for styling the "unlocked" state
-    if (checkbox.checked) {
-        button.classList.add('active');
-    } else {
-        button.classList.remove('active');
+        const checkbox = document.getElementById(`confirm-${id}`);
+        const button = document.getElementById(`btn-${id}`);
+        
+        if (checkbox && button) {
+            button.disabled = !checkbox.checked;
+            if (checkbox.checked) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        }
     }
-}
-
-function handler(id) {
-  document.getElementById("text" + id).setAttribute("hidden", "true");
-  document.getElementById("edit" + id).setAttribute("hidden", "true");
-
-  document.getElementById("input" + id).removeAttribute("hidden");
-  document.getElementById("done" + id).removeAttribute("hidden");
-}
-
-function toggleDeleteButton(id) {
-    const checkbox = document.getElementById('confirm-' + id);
-    const btn = document.getElementById('btn-' + id);
-    btn.disabled = !checkbox.checked;
-}
-
 </script>
 <%- include('partials/footer.ejs'); -%>
