@@ -2,22 +2,21 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
+const { Pool } = require('pg');
 import axios from "axios";
 import "dotenv/config";
 
 const app = express();
-const port = process.env.port || 3000;
+const port = process.env.PORT || 3000;
 
-const db = new pg.Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+
+const db = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false // Required for most cloud database providers
+  }
 });
 
-
-db.connect();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
