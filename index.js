@@ -2,7 +2,7 @@
 import express from "express";
 import bodyParser from "body-parser";
 import pg from "pg";
-const { Pool } = require('pg');
+const { Pool } = pg;
 import axios from "axios";
 import "dotenv/config";
 
